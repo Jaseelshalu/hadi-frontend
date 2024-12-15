@@ -8,6 +8,8 @@ import {
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
 import Home from "./pages/Home";
+import Voice from "./pages/Voice";
+import Firebase from "./pages/Firebase";
 import Logout from "./components/Logout";
 import { useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -42,6 +44,24 @@ const App = () => {
           element={
             <ProtectedRoute>
               <Home />
+              <Logout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/voice"
+          element={
+            <ProtectedRoute>
+              <Voice />
+              <Logout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/firebase"
+          element={
+            <ProtectedRoute>
+              <Firebase />
               <Logout />
             </ProtectedRoute>
           }

@@ -1,45 +1,54 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "../controllers/axiosInstance";
+import { useAuth } from "../context/AuthContext";
 
-const App = () => {
-  const [transcript, setTranscript] = useState("");
-  const [correctedText, setCorrectedText] = useState("");
+const Home = () => {
+  const { user } = useAuth();
+  const [chapters, setChapters] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
-  const startVoiceRecognition = () => {
-    const recognition = new (window.SpeechRecognition ||
-      window.webkitSpeechRecognition)();
-    recognition.lang = "en-US";
-    recognition.start();
-
-    recognition.onresult = async (event) => {
-      const voiceText = event.results[0][0].transcript;
-      setTranscript(voiceText);
-
-      // Send the text to the backend for correction
-      const response = await fetch("http://localhost:3000/auth/check-voice", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text: voiceText }),
-      });
-
-      const data = await response.json();
-      setCorrectedText(data.correctedText);
+  useEffect(() => {
+    // Fetch lessons if user is authenticated
+    const fetchLessons = async () => {
+      try {
+        const response = await axios.get(`/home/?userId=${user.userId}`);
+        setChapters(response.data);
+      } catch (error) {
+        console.error("Error fetching lessons:", error);
+        setChapters([]);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    recognition.onerror = (event) => {
-      console.error("Error occurred in recognition: ", event.error);
-    };
+    fetchLessons();
+  }, [user, navigate]);
+
+  const enterToLesson = (lessonId) => {
+    console.log(lessonId);
   };
 
+  const handleCommunityChat = () => { window.location = '/chat' }
+  
   return (
     <div>
-      <h1>Voice Correction Example</h1>
-      <button onClick={startVoiceRecognition}>Start Voice Recognition</button>
-      <p>Transcript: {transcript}</p>
-      <p>Corrected Text: {correctedText}</p>
+      <h5 onClick={() => handleCommunityChat()}>Community Chat</h5>
+      <h1>Home Page</h1>
+      {user && <p>Hi {user.username}</p>}
+      {chapters && chapters.map((chapter, index) => (
+        <div key={index}>
+          <h1>{chapter.Name}</h1>
+          {chapter.Lessons?.map((lesson, lessonIndex) => (
+            <div onClick={() => enterToLesson(lesson._id)} key={lessonIndex}>
+              {lesson.title}
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   );
 };
 
-export default App;
+export default Home;
